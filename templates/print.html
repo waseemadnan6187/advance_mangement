@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { 
+        font-family: 'Segoe UI', Arial, sans-serif; 
+        font-size: 10pt; 
+        color: #2b2b2b; 
+        background-color: #f4f6f8; 
+        padding: 20px; 
+    }
+    .voucher-card {
+        max-width: 680px;
+        margin: 0 auto;
+        background: #ffffff;
+        border: 1px solid #e1e6eb;
+        border-radius: 6px;
+        padding: 30px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    /* Header Styling */
+    .header {
+        text-align: center;
+        border-bottom: 2px solid #1a365d;
+        padding-bottom: 12px;
+        margin-bottom: 16px;
+    }
+    .company-name {
+        font-size: 16pt;
+        font-weight: 700;
+        color: #1a365d;
+        text-transform: uppercase;
+        letter-spacing: 0.5pt;
+    }
+    .company-details {
+        font-size: 8.5pt;
+        color: #64748b;
+        margin-top: 2px;
+    }
+    .voucher-title {
+        text-align: center;
+        font-size: 11pt;
+        font-weight: 700;
+        color: #0f172a;
+        background: #f1f5f9;
+        padding: 6px;
+        border-radius: 4px;
+        letter-spacing: 1pt;
+        margin-bottom: 16px;
+    }
+    /* Info Grid */
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px 20px;
+        margin-bottom: 16px;
+        background-color: #fafafa;
+        border: 1px solid #f0f0f0;
+        padding: 12px;
+        border-radius: 4px;
+    }
+    .info-item { display: flex; flex-direction: column; }
+    .label { font-size: 7.5pt; font-weight: 700; text-transform: uppercase; color: #64748b; margin-bottom: 2px; }
+    .value { font-size: 9.5pt; font-weight: 600; color: #1e293b; }
+    
+    /* Details Section */
+    .details-group {
+        margin-bottom: 16px;
+    }
+    .detail-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px dashed #e2e8f0;
+    }
+    /* Highlighted Amount Section */
+    .amount-box {
+        background: #f0f9ff;
+        border: 1px solid #bae6fd;
+        border-radius: 6px;
+        padding: 12px;
+        text-align: center;
+        margin: 16px 0;
+    }
+    .amount-title { font-size: 8pt; font-weight: 700; color: #0369a1; text-transform: uppercase; }
+    .amount-val { font-size: 15pt; font-weight: 800; color: #0284c7; margin: 2px 0; }
+    .amount-words { font-size: 8.5pt; font-style: italic; color: #334155; }
+
+    /* Signatures Layout */
+    .signatures-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-top: 45px;
+    }
+    .sig-box {
+        text-align: center;
+        border-top: 1.5px solid #cbd5e1;
+        padding-top: 6px;
+    }
+    .sig-title { font-size: 8pt; font-weight: 700; color: #475569; }
+
+    @media print {
+        body { background: #fff; padding: 0; }
+        .voucher-card { box-shadow: none; border: 1px solid #ccc; }
+    }
+</style>
+</head>
+<body>
+
+<div class="voucher-card">
+    <!-- Header -->
+    <div class="header">
+        <div class="company-name">{COMPANY_NAME}</div>
+        <div class="company-details">{company_html}</div>
+    </div>
+
+    <div class="voucher-title">ADVANCE CASH PAYMENT VOUCHER</div>
+
+    <!-- Metadata -->
+    <div class="info-grid">
+        <div class="info-item">
+            <span class="label">Date</span>
+            <span class="value">{date_formatted}</span>
+        </div>
+        <div class="info-item">
+            <span class="label">Employee Name</span>
+            <span class="value">{emp_name}</span>
+        </div>
+        <div class="info-item">
+            <span class="label">Previous Balance</span>
+            <span class="value">Rs. {prev_balance:,.0f}/-</span>
+        </div>
+        <div class="info-item">
+            <span class="label">Designation</span>
+            <span class="value">{designation}</span>
+        </div>
+    </div>
+
+    <!-- Description -->
+    <div class="details-group">
+        <div class="detail-row">
+            <span class="label">Purpose Of Advance</span>
+            <span class="value">{description}</span>
+        </div>
+    </div>
+
+    <!-- Amount Banner -->
+    <div class="amount-box">
+        <div class="amount-title">Required Amount</div>
+        <div class="amount-val">Rs. {amount:,.0f}/-</div>
+        <div class="amount-words"><strong>In Words:</strong> {amt_words}</div>
+    </div>
+
+    <!-- Signatures -->
+    <div class="signatures-grid">
+        <div class="sig-box">
+            <div class="sig-title">Prepared By</div>
+        </div>
+        <div class="sig-box">
+            <div class="sig-title">Recommended By</div>
+        </div>
+        <div class="sig-box">
+            <div class="sig-title">Approved By</div>
+        </div>
+        <div class="sig-box">
+            <div class="sig-title">Received By</div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

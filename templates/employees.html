@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="title">Manage Employees</div>
+    <div class="subtitle">Add new employees to the system</div>
+
+    <form class="panel" method="post" action="{{ url_for('employees_add') }}">
+        <div class="row">
+            <div class="field">
+                <label>Employee Name *</label>
+                <input type="text" name="name" placeholder="Enter full name" required>
+            </div>
+            <div class="field">
+                <label>Designation</label>
+                <input type="text" name="designation" placeholder="e.g. Salesman, Driver, Accountant">
+            </div>
+            <div class="field" style="flex:0 0 auto;">
+                <button type="submit" class="btn btn-success">Add Employee</button>
+            </div>
+        </div>
+    </form>
+
+    <div class="title" style="font-size:16px; color:var(--text-strong);">Existing Employees</div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Designation</th>
+                    <th>Current Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in employees %}
+                <tr>
+                    <td class="center">{{ e.code }}</td>
+                    <td>{{ e.name }}</td>
+                    <td>{{ e.designation }}</td>
+                    <td class="num {{ 'danger' if e.balance > 0 else 'muted' }}">{{ "{:,.0f}".format(e.balance) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

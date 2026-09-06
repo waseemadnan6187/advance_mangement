@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="title">Reconcile Data</div>
+    <div class="subtitle">Compare source sheet (advance.xlsm / Data) with database records</div>
+
+    <div class="cards">
+        <div class="card">
+            <div class="card-title">Excel Transactions</div>
+            <div class="card-value" style="color:var(--accent);">{{ data.integrity.rows|default(0) }}</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Employees Compared</div>
+            <div class="card-value" style="color:var(--accent);">{{ data.total_employees }}</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Matched</div>
+            <div class="card-value" style="color:#81c784;">{{ data.matched }}</div>
+        </div>
+        <div class="card">
+            <div class="card-title">With Differences</div>
+            <div class="card-value" style="color:#ffb74d;">{{ data.difference }}</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Only in Excel</div>
+            <div class="card-value" style="color:#ef5350;">{{ data.only_excel }}</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Only in Database</div>
+            <div class="card-value" style="color:#ef5350;">{{ data.only_db }}</div>
+        </div>
+    </div>
+
+    <div class="panel panel-accent">
+        <div class="summary-strip" style="flex-wrap:wrap;">
+            <span class="adv">Excel Total Adv: Rs. {{ "{:,.0f}".format(data.total_xl_adv) }}</span>
+            <span class="ded">Excel Total Ded: Rs. {{ "{:,.0f}".format(data.total_xl_ded) }}</span>
+            <span class="bal">Excel Total Bal: Rs. {{ "{:,.0f}".format(data.total_xl_bal) }}</span>
+            <span style="flex-grow:1;"></span>
+            <span class="adv">DB Total Adv: Rs. {{ "{:,.0f}".format(data.total_db_adv) }}</span>
+            <span class="ded">DB Total Ded: Rs. {{ "{:,.0f}".format(data.total_db_ded) }}</span>
+            <span class="bal">DB Total Bal: Rs. {{ "{:,.0f}".format(data.total_db_bal) }}</span>
+        </div>
+    </div>
+
+    {% if data.integrity.balance_err or data.integrity.running_err %}
+    <div class="flash error">
+        Data integrity issues in source sheet: Balance column errors: {{ data.integrity.balance_err }},
+        Running-total errors: {{ data.integrity.running_err }} (of {{ data.integrity.rows }} rows).
+    </div>
+    {% else %}
+    <div class="flash success">
+        Data integrity OK: all {{ data.integrity.rows }} rows in the source sheet balance correctly.
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <div class="field" style="flex:0 0 300px;">
+            <input type="text" id="searchInput" placeholder="Search employee...">
+        </div>
+        <div class="field" style="flex:0 0 220px;">
+            <select id="statusFilter">
+                <option value="">All statuses</option>
+                <option value="matched">Matched</option>
+                <option value="difference">With Differences</option>
+                <option value="only_excel">Only in Excel</option>
+                <option value="only_db">Only in Database</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table id="reconTable">
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Excel Name</th>
+                    <th>Database Name</th>
+                    <th class="num">Excel Adv</th>
+                    <th class="num">DB Adv</th>
+                    <th class="num">Adv Diff</th>
+                    <th class="num">Excel Ded</th>
+                    <th class="num">DB Ded</th>
+                    <th class="num">Ded Diff</th>
+                    <th class="num">Excel Bal</th>
+                    <th class="num">DB Bal</th>
+                    <th class="num">Bal Diff</th>
+                    <th class="num">Excel Txns</th>
+                    <th class="num">DB Txns</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in data.rows %}
+                <tr data-name="{{ (r.excel_name if r.excel_name != '-' else r.db_name)|lower }}" data-status="{{ r.status }}">
+                    <td>
+                        {% if r.status == 'matched' %}
+                            <span style="color:#81c784; font-weight:bold;">&#10003; Matched</span>
+                        {% elif r.status == 'difference' %}
+                            <span style="color:#ffb74d; font-weight:bold;">&#9888; Difference</span>
+                        {% elif r.status == 'only_excel' %}
+                            <span style="color:#ef5350; font-weight:bold;">Missing in DB</span>
+                        {% else %}
+                            <span style="color:#ab47bc; font-weight:bold;">Missing in Excel</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ r.excel_name }}</td>
+                    <td>{{ r.db_name }}</td>
+                    <td class="num">{{ "{:,.0f}".format(r.xl_adv) }}</td>
+                    <td class="num">{{ "{:,.0f}".format(r.db_adv) }}</td>
+                    <td class="num {{ 'danger' if r.diff_adv > 0.01 else ('pos' if r.diff_adv < -0.01 else 'muted') }}">{{ "{:,.0f}".format(r.diff_adv) }}</td>
+                    <td class="num">{{ "{:,.0f}".format(r.xl_ded) }}</td>
+                    <td class="num">{{ "{:,.0f}".format(r.db_ded) }}</td>
+                    <td class="num {{ 'danger' if r.diff_ded > 0.01 else ('pos' if r.diff_ded < -0.01 else 'muted') }}">{{ "{:,.0f}".format(r.diff_ded) }}</td>
+                    <td class="num {{ 'danger' if r.xl_bal > 0.01 else 'muted' }}">{{ "{:,.0f}".format(r.xl_bal) }}</td>
+                    <td class="num {{ 'danger' if r.db_bal > 0.01 else 'muted' }}">{{ "{:,.0f}".format(r.db_bal) }}</td>
+                    <td class="num {{ 'danger' if r.diff_bal > 0.01 else ('pos' if r.diff_bal < -0.01 else 'muted') }}">{{ "{:,.0f}".format(r.diff_bal) }}</td>
+                    <td class="num">{{ r.xl_cnt }}</td>
+                    <td class="num">{{ r.db_cnt }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const search = document.getElementById('searchInput');
+    const status = document.getElementById('statusFilter');
+    function filterRows() {
+        const q = search.value.toLowerCase();
+        const st = status.value;
+        document.querySelectorAll('#reconTable tbody tr').forEach(tr => {
+            const nameOk = !q || tr.dataset.name.includes(q);
+            const statusOk = !st || tr.dataset.status === st;
+            tr.style.display = (nameOk && statusOk) ? '' : 'none';
+        });
+    }
+    search.addEventListener('input', filterRows);
+    status.addEventListener('change', filterRows);
+</script>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="title">Dashboard</div>
+    <div class="subtitle">Staff Advances Overview</div>
+
+    <div class="cards">
+        <div class="card">
+            <div class="card-title">Total Employees</div>
+            <div class="card-value" style="color:var(--accent);">{{ total_emp }}</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Total Advances</div>
+            <div class="card-value" style="color:#81c784;">{{ "{:,.0f}".format(total_adv) }}</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Total Deductions</div>
+            <div class="card-value" style="color:#ffb74d;">{{ "{:,.0f}".format(total_ded) }}</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Outstanding Balance</div>
+            <div class="card-value" style="color:#ef5350;">{{ "{:,.0f}".format(total_bal) }}</div>
+        </div>
+    </div>
+
+    <div class="title" style="font-size:16px; color:var(--text-strong);">Employee Summary</div>
+
+    <div class="row">
+        <div class="field" style="flex:0 0 300px;">
+            <input type="text" id="searchInput" placeholder="Search employee...">
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table id="summaryTable">
+            <thead>
+                <tr>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Designation</th>
+                    <th>Total Advance</th>
+                    <th>Total Deduction</th>
+                    <th>Balance</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in summary %}
+                <tr data-name="{{ s.name|lower }}" data-desig="{{ s.designation|lower }}">
+                    <td class="center">{{ s.code }}</td>
+                    <td>{{ s.name }}</td>
+                    <td>{{ s.designation }}</td>
+                    <td class="num pos">{{ "{:,.0f}".format(s.total_advance) }}</td>
+                    <td class="num neg">{{ "{:,.0f}".format(s.total_deduction) }}</td>
+                    <td class="num {{ 'danger' if s.balance > 0 else ('pos' if s.balance < 0 else 'muted') }}">{{ "{:,.0f}".format(s.balance) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('searchInput').addEventListener('input', function () {
+        const q = this.value.toLowerCase();
+        document.querySelectorAll('#summaryTable tbody tr').forEach(tr => {
+            const name = tr.dataset.name;
+            const desig = tr.dataset.desig;
+            tr.style.display = (!q || name.includes(q) || desig.includes(q)) ? '' : 'none';
+        });
+    });
+</script>
+{% endblock %}

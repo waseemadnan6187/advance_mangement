@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="title">Advance Entry</div>
+    <div class="subtitle">Add new advance payment or deduction for an employee</div>
+
+    <form class="panel" method="post" action="{{ url_for('advance_save') }}">
+        <div class="row">
+            <div class="field">
+                <label>Employee Name</label>
+                <select id="empName" name="emp_name" required>
+                    <option value="">-- Select Employee --</option>
+                    {% for e in employees %}
+                    <option value="{{ e }}">{{ e }}</option>
+                    {% endfor %}
+                </select>
+                <div class="hint" id="desigHint"></div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="field">
+                <label>Date</label>
+                <input type="date" name="trans_date" id="transDate">
+            </div>
+            <div class="field">
+                <label>Transaction Type</label>
+                <select name="trans_type" id="transType">
+                    <option value="Advance Payment">Advance Payment</option>
+                    <option value="Deduction / Salary Adj.">Deduction / Salary Adj.</option>
+                </select>
+            </div>
+            <div class="field">
+                <label>Amount</label>
+                <input type="number" id="amount" name="amount" min="0" step="1" value="0">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="field">
+                <label>Description</label>
+                <input type="text" name="description" placeholder="e.g. Advance Paid Against Salary, Adj. from Salary, Cash Return...">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="field" style="flex:0 0 auto;">
+                <button type="submit" class="btn btn-primary">Save Transaction</button>
+                <button type="button" class="btn" onclick="clearForm()">Clear Form</button>
+            </div>
+        </div>
+    </form>
+
+    <div class="title" style="font-size:16px; color:var(--text-strong);">Recent Transactions ({{ recent_count }})</div>
+
+    <div class="row">
+        <form method="get" action="{{ url_for('advance_entry') }}" class="row" style="margin-bottom:0; flex-wrap:wrap; align-items:flex-end;">
+            <div class="field" style="flex:0 0 260px;">
+                <label>Search</label>
+                <input type="text" id="searchInput" name="q" value="{{ q }}" placeholder="Search by name or description...">
+            </div>
+            <div class="field" style="flex:0 0 150px;">
+                <label>Year</label>
+                <select name="year">
+                    <option value="">All Years</option>
+                    {% for y in years %}
+                        <option value="{{ y }}" {{ 'selected' if year == y }}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="field" style="flex:0 0 150px;">
+                <label>Month</label>
+                <select name="month">
+                    <option value="">All Months</option>
+                    {% set month_names = {1:'January', 2:'February', 3:'March', 4:'April', 5:'May', 6:'June', 7:'July', 8:'August', 9:'September', 10:'October', 11:'November', 12:'December'} %}
+                    {% for m, mname in month_names.items() %}
+                        <option value="{{ m }}" {{ 'selected' if month|string == m|string }}>{{ mname }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="field" style="flex:0 0 auto;">
+                <button type="submit" class="btn">Apply</button>
+                {% if q or month or year %}
+                    <a class="btn" href="{{ url_for('advance_entry') }}">Clear</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <div class="table-wrap">
+        <table id="recentTable">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Employee</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Description</th>
+                    <th>Balance</th>
+                    <th>Voucher</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in recent %}
+                <tr data-name="{{ (t.emp_name ~ ' ' ~ t.description)|lower }}">
+                    <td>{{ t.trans_date }}</td>
+                    <td>{{ t.emp_name }}</td>
+                    {% if t.advance > 0 %}
+                        <td class="pos">Advance</td>
+                        <td class="num pos">{{ "{:,.0f}".format(t.advance) }}</td>
+                    {% else %}
+                        <td class="neg">Deduction</td>
+                        <td class="num neg">{{ "{:,.0f}".format(t.deduction) }}</td>
+                    {% endif %}
+                    <td>{{ t.description }}</td>
+                    <td class="num">{{ "{:,.0f}".format(t.running_total) }}</td>
+                    <td class="center">
+                        {% if t.advance > 0 %}
+                            <a class="btn btn-primary btn-sm" href="{{ url_for('voucher', trans_id=t.id) }}" target="_blank">Print Voucher</a>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td class="center">
+                        <button type="button" class="btn btn-sm" onclick="openEditModal({{ t.id }})">Edit</button>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="deleteTransaction({{ t.id }}, '{{ t.emp_name|e }}')">Delete</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if pages > 1 %}
+    <div class="pagination">
+        <span style="color:var(--text-muted); font-size:12px;">
+            Showing {{ total and ((page - 1) * per_page + 1) }}&ndash;{{ ((page - 1) * per_page + recent|length) if page < pages else total }} of {{ total }}
+        </span>
+        <div class="pagination-pages">
+            {% if page > 1 %}
+                <a class="btn btn-sm" href="{{ url_for('advance_entry', page=page-1, per_page=per_page, q=q, year=year, month=month) }}">&lsaquo; Prev</a>
+            {% else %}
+                <span class="btn btn-sm" style="opacity:0.4;">&lsaquo; Prev</span>
+            {% endif %}
+
+            {% set start = [1, page - 2]|max %}
+            {% set end = [pages, page + 2]|min %}
+            {% if start > 1 %}
+                <a class="btn btn-sm" href="{{ url_for('advance_entry', page=1, per_page=per_page, q=q, year=year, month=month) }}">1</a>
+                {% if start > 2 %}<span class="btn btn-sm" style="opacity:0.4;">&hellip;</span>{% endif %}
+            {% endif %}
+
+            {% for p in range(start, end + 1) %}
+                {% if p == page %}
+                    <span class="btn btn-sm btn-primary">{{ p }}</span>
+                {% else %}
+                    <a class="btn btn-sm" href="{{ url_for('advance_entry', page=p, per_page=per_page, q=q, year=year, month=month) }}">{{ p }}</a>
+                {% endif %}
+            {% endfor %}
+
+            {% if end < pages %}
+                {% if end < pages - 1 %}<span class="btn btn-sm" style="opacity:0.4;">&hellip;</span>{% endif %}
+                <a class="btn btn-sm" href="{{ url_for('advance_entry', page=pages, per_page=per_page, q=q, year=year, month=month) }}">{{ pages }}</a>
+            {% endif %}
+
+            {% if page < pages %}
+                <a class="btn btn-sm" href="{{ url_for('advance_entry', page=page+1, per_page=per_page, q=q, year=year, month=month) }}">Next &rsaquo;</a>
+            {% else %}
+                <span class="btn btn-sm" style="opacity:0.4;">Next &rsaquo;</span>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('transDate').value = today;
+
+    const empSelect = document.getElementById('empName');
+    empSelect.addEventListener('change', async function () {
+        const name = this.value;
+        const hint = document.getElementById('desigHint');
+        const amount = document.getElementById('amount');
+        if (!name) { hint.textContent = ''; return; }
+        try {
+            const res = await fetch('/api/balance/' + encodeURIComponent(name));
+            const data = await res.json();
+            hint.textContent = data.designation
+                ? data.designation + '  |  Current Balance: Rs. ' + data.balance.toLocaleString()
+                : 'Current Balance: Rs. ' + data.balance.toLocaleString();
+        } catch (e) { hint.textContent = ''; }
+    });
+
+    function clearForm() {
+        empSelect.value = '';
+        document.getElementById('transDate').value = today;
+        document.getElementById('transType').value = 'Advance Payment';
+        document.getElementById('amount').value = 0;
+        document.querySelector('input[name="description"]').value = '';
+        document.getElementById('desigHint').textContent = '';
+    }
+</script>
+{% endblock %}

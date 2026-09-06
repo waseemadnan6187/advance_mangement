@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="title">Employee Ledger</div>
+    <div class="subtitle">View complete transaction history for any employee</div>
+
+    <div class="row">
+        <div class="field" style="flex:0 0 320px;">
+            <label>Select Employee</label>
+            <select id="empSelect">
+                <option value="">-- Select Employee --</option>
+                {% for e in employees %}
+                <option value="{{ e }}">{{ e }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="field" style="flex:0 0 160px;">
+            <label>Year</label>
+            <select id="yearSelect">
+                <option value="">All Years</option>
+                {% for y in years %}
+                    <option value="{{ y }}" {{ 'selected' if year == y }}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="field" style="flex:0 0 160px;">
+            <label>Month</label>
+            <select id="monthSelect">
+                <option value="">All Months</option>
+                <option value="1" {{ 'selected' if month == '1' }}>January</option>
+                <option value="2" {{ 'selected' if month == '2' }}>February</option>
+                <option value="3" {{ 'selected' if month == '3' }}>March</option>
+                <option value="4" {{ 'selected' if month == '4' }}>April</option>
+                <option value="5" {{ 'selected' if month == '5' }}>May</option>
+                <option value="6" {{ 'selected' if month == '6' }}>June</option>
+                <option value="7" {{ 'selected' if month == '7' }}>July</option>
+                <option value="8" {{ 'selected' if month == '8' }}>August</option>
+                <option value="9" {{ 'selected' if month == '9' }}>September</option>
+                <option value="10" {{ 'selected' if month == '10' }}>October</option>
+                <option value="11" {{ 'selected' if month == '11' }}>November</option>
+                <option value="12" {{ 'selected' if month == '12' }}>December</option>
+            </select>
+        </div>
+        <div class="field" style="flex:0 0 auto;">
+            <div id="infoLabel" style="color:var(--accent); font-size:13px; font-weight:bold;">Select an employee to view ledger</div>
+        </div>
+    </div>
+
+    <div class="panel panel-accent" id="summaryPanel" style="display:none;">
+        <div class="summary-strip">
+            <span class="adv" id="lblTotalAdv">Total Advance: Rs. 0</span>
+            <span class="ded" id="lblTotalDed">Total Deduction: Rs. 0</span>
+            <span class="bal" id="lblBalance">Balance: Rs. 0</span>
+            <span style="flex-grow:1;"></span>
+            <button class="btn btn-primary" id="printBtn" onclick="printLedger()">Print Ledger</button>
+            <button class="btn btn-success" id="exportPdfBtn" onclick="exportPdf()">Export PDF</button>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table id="ledgerTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Date</th>
+                    <th>Description</th>
+                    <th>Advance</th>
+                    <th>Deduction</th>
+                    <th>Balance</th>
+                    <th>Running Total</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const empSelect = document.getElementById('empSelect');
+    const yearSelect = document.getElementById('yearSelect');
+    const monthSelect = document.getElementById('monthSelect');
+    const tbody = document.querySelector('#ledgerTable tbody');
+    let currentEmp = '';
+
+    async function loadLedger() {
+        if (!currentEmp) {
+            tbody.innerHTML = '';
+            document.getElementById('summaryPanel').style.display = 'none';
+            document.getElementById('infoLabel').textContent = 'Select an employee to view ledger';
+            return;
+        }
+        const params = new URLSearchParams({ month: monthSelect.value, year: yearSelect.value });
+        const res = await fetch('/api/employee/' + encodeURIComponent(currentEmp) + '?' + params.toString());
+        const data = await res.json();
+        if (!data.exists) {
+            tbody.innerHTML = '';
+            document.getElementById('summaryPanel').style.display = 'none';
+            document.getElementById('infoLabel').textContent = 'Employee not found';
+            return;
+        }
+
+        document.getElementById('infoLabel').textContent =
+            'Code: ' + data.info.code + '  |  ' + data.info.designation +
+            (data.ledger.length ? '  |  ' + data.ledger.length + ' transactions' : '');
+        document.getElementById('lblTotalAdv').textContent =
+            'Total Advance: Rs. ' + data.total_adv.toLocaleString();
+        document.getElementById('lblTotalDed').textContent =
+            'Total Deduction: Rs. ' + data.total_ded.toLocaleString();
+        document.getElementById('lblBalance').textContent =
+            'Balance: Rs. ' + data.balance.toLocaleString();
+        document.getElementById('summaryPanel').style.display = '';
+
+        tbody.innerHTML = '';
+        if (!data.ledger.length) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = '<td colspan="8" style="text-align:center; color:var(--text-muted);">No transactions for the selected period.</td>';
+            tbody.appendChild(tr);
+            return;
+        }
+        for (const t of data.ledger) {
+            const tr = document.createElement('tr');
+            const advCell = t.advance ? t.advance.toLocaleString() : '-';
+            const dedCell = t.deduction ? t.deduction.toLocaleString() : '-';
+            let rtClass = t.running_total > 0 ? 'danger' : (t.running_total < 0 ? 'pos' : 'muted');
+            tr.innerHTML =
+                '<td class="center">' + t.id + '</td>' +
+                '<td>' + t.trans_date + '</td>' +
+                '<td>' + t.description + '</td>' +
+                '<td class="num pos">' + advCell + '</td>' +
+                '<td class="num neg">' + dedCell + '</td>' +
+                '<td class="num">' + t.balance.toLocaleString() + '</td>' +
+                '<td class="num ' + rtClass + '">' + t.running_total.toLocaleString() + '</td>' +
+                '<td class="center">' +
+                    '<button type="button" class="btn btn-sm" onclick="openEditModal(' + t.id + ')">Edit</button> ' +
+                    '<button type="button" class="btn btn-danger btn-sm" onclick="deleteTransaction(' + t.id + ', \'' + t.emp_name.replace(/'/g, "\\'") + '\')">Delete</button>' +
+                '</td>';
+            tbody.appendChild(tr);
+        }
+    }
+
+    empSelect.addEventListener('change', function () {
+        currentEmp = this.value;
+        loadLedger();
+    });
+    yearSelect.addEventListener('change', loadLedger);
+    monthSelect.addEventListener('change', loadLedger);
+
+    function printLedger() {
+        if (!currentEmp) return;
+        window.open('/print/ledger/' + encodeURIComponent(currentEmp), '_blank');
+    }
+    function exportPdf() {
+        if (!currentEmp) return;
+        const win = window.open('/print/ledger/' + encodeURIComponent(currentEmp), '_blank');
+        win.addEventListener('load', function () { win.print(); });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="title">Sync Data from Excel</div>
+    <div class="subtitle">Import all employees and transactions from {{ excel_file }} into the database</div>
+
+    <div class="cards">
+        <div class="card">
+            <div class="card-title">Excel Transactions</div>
+            <div class="card-value" style="color:var(--accent);">{{ preview.transactions if preview else 0 }}</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Excel Employees</div>
+            <div class="card-value" style="color:var(--accent);">{{ preview.employees if preview else 0 }}</div>
+        </div>
+        <div class="card">
+            <div class="card-title">DB Transactions (Current)</div>
+            <div class="card-value" style="color:var(--accent);">{{ db_transactions }}</div>
+        </div>
+        <div class="card">
+            <div class="card-title">DB Employees (Current)</div>
+            <div class="card-value" style="color:var(--accent);">{{ db_employees }}</div>
+        </div>
+    </div>
+
+    {% if exists %}
+    <div class="panel panel-accent">
+        <div class="summary-strip" style="flex-wrap:wrap;">
+            <span>Source: <strong>{{ excel_file }}</strong></span>
+            <span>Last modified: {{ mtime }}</span>
+            <span style="flex-grow:1;"></span>
+            {% if integrity %}
+            <span class="adv">Source rows: {{ integrity.rows if integrity is mapping else 0 }}</span>
+            <span class="{{ 'danger' if integrity.balance_err or integrity.running_err else 'pos' }}">
+                Balance errors: {{ integrity.balance_err }} | Running errors: {{ integrity.running_err }}
+            </span>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if preview %}
+    <div class="flash warning">
+        <strong>Note:</strong> Sync will <em>replace</em> all database records with the Excel data.
+        Any manual entries added in the app that are not in {{ excel_file }} will be removed.
+        The operation is atomic &mdash; if anything fails, the database is left unchanged.
+    </div>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('sync_run') }}" onsubmit="return confirm('Replace the entire database with the Excel data? This cannot be undone.');">
+        <button class="btn btn-primary" type="submit"
+            {% if not preview %}disabled{% endif %}>
+            Sync Now &mdash; Replace Database with Excel Data
+        </button>
+    </form>
+    {% else %}
+    <div class="flash error">
+        Source file <strong>{{ excel_file }}</strong> was not found. Place it next to the application and reload this page.
+    </div>
+    {% endif %}
+{% endblock %}

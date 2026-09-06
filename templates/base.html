@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Advance Management System - CPS Sargodha{% endblock %}</title>
+    <style>
+        :root {
+            --bg: #1a1a2e;
+            --sidebar-bg: #16213e;
+            --sidebar-border: #2a2a4a;
+            --panel: #16213e;
+            --panel-accent-bg: #0f3460;
+            --panel-accent-border: #1a5276;
+            --input-bg: #16213e;
+            --border: #2a2a4a;
+            --header-bg: #0f3460;
+            --alt-row: #1c1c35;
+            --row-hover: #0f3460;
+            --nav-hover: #0f3460;
+            --nav-active-bg: #0f3460;
+            --text: #e0e0e0;
+            --text-strong: #ffffff;
+            --text-muted: #a0a0b0;
+            --text-sub: #607080;
+            --text-version: #505070;
+            --accent: #4fc3f7;
+            --btn-bg: #0f3460;
+            --btn-hover: #1a5276;
+            --modal-bg: #16213e;
+        }
+        [data-theme="light"] {
+            --bg: #eef1f5;
+            --sidebar-bg: #ffffff;
+            --sidebar-border: #dfe4ea;
+            --panel: #ffffff;
+            --panel-accent-bg: #e9f1fb;
+            --panel-accent-border: #c3d6ee;
+            --input-bg: #ffffff;
+            --border: #d7dce3;
+            --header-bg: #dde9f6;
+            --alt-row: #f5f7fa;
+            --row-hover: #e3edf7;
+            --nav-hover: #eef4fb;
+            --nav-active-bg: #dde9f6;
+            --text: #243043;
+            --text-strong: #0f172a;
+            --text-muted: #64748b;
+            --text-sub: #52606e;
+            --text-version: #94a3b8;
+            --accent: #1976d2;
+            --btn-bg: #1565c0;
+            --btn-hover: #1976d2;
+            --modal-bg: #ffffff;
+        }
+        [data-theme="blue"] {
+            --bg: #0b1220;
+            --sidebar-bg: #0e1b34;
+            --sidebar-border: #1e3a66;
+            --panel: #0e1b34;
+            --panel-accent-bg: #123a72;
+            --panel-accent-border: #1e4d94;
+            --input-bg: #0e1b34;
+            --border: #1e3a66;
+            --header-bg: #123a72;
+            --alt-row: #101f3d;
+            --row-hover: #123a72;
+            --nav-hover: #123a72;
+            --nav-active-bg: #123a72;
+            --text: #d7e3f4;
+            --text-strong: #ffffff;
+            --text-muted: #8fa6c8;
+            --text-sub: #6a7f9e;
+            --text-version: #4c617f;
+            --accent: #64b5f6;
+            --btn-bg: #123a72;
+            --btn-hover: #1e4d94;
+            --modal-bg: #0e1b34;
+        }
+        [data-theme="green"] {
+            --bg: #0d1a13;
+            --sidebar-bg: #102319;
+            --sidebar-border: #21452f;
+            --panel: #102319;
+            --panel-accent-bg: #163527;
+            --panel-accent-border: #24503a;
+            --input-bg: #102319;
+            --border: #21452f;
+            --header-bg: #163527;
+            --alt-row: #122a1e;
+            --row-hover: #163527;
+            --nav-hover: #163527;
+            --nav-active-bg: #163527;
+            --text: #d7e8dd;
+            --text-strong: #ffffff;
+            --text-muted: #90b09b;
+            --text-sub: #66806e;
+            --text-version: #49604f;
+            --accent: #81c784;
+            --btn-bg: #163527;
+            --btn-hover: #24503a;
+            --modal-bg: #102319;
+        }
+        [data-theme="purple"] {
+            --bg: #1a1226;
+            --sidebar-bg: #211532;
+            --sidebar-border: #3a2855;
+            --panel: #211532;
+            --panel-accent-bg: #332055;
+            --panel-accent-border: #4a2f78;
+            --input-bg: #211532;
+            --border: #3a2855;
+            --header-bg: #332055;
+            --alt-row: #271a3b;
+            --row-hover: #332055;
+            --nav-hover: #332055;
+            --nav-active-bg: #332055;
+            --text: #e3d9f0;
+            --text-strong: #ffffff;
+            --text-muted: #a293bc;
+            --text-sub: #7b6c96;
+            --text-version: #5c4f75;
+            --accent: #ce93d8;
+            --btn-bg: #332055;
+            --btn-hover: #4a2f78;
+            --modal-bg: #211532;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 13px;
+            display: flex;
+            min-height: 100vh;
+            transition: background-color .3s, color .3s;
+        }
+        a { text-decoration: none; color: inherit; }
+
+        .sidebar {
+            width: 240px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--sidebar-border);
+            padding: 20px 12px;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+            transition: background-color .3s, border-color .3s;
+        }
+        .sidebar .app-title {
+            color: var(--accent);
+            font-size: 18px;
+            font-weight: bold;
+            padding: 10px 0 4px 0;
+        }
+        .sidebar .app-sub {
+            color: var(--text-sub);
+            font-size: 11px;
+            padding-bottom: 16px;
+        }
+        .sidebar .sep {
+            border: none;
+            border-top: 1px solid var(--sidebar-border);
+            margin: 0 0 8px 0;
+        }
+        .nav-btn {
+            display: block;
+            background: transparent;
+            color: var(--text-muted);
+            border: none;
+            border-radius: 8px;
+            padding: 12px 16px;
+            text-align: left;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+            margin-bottom: 4px;
+        }
+        .nav-btn:hover { background-color: var(--nav-hover); color: var(--text-strong); }
+        .nav-btn.active {
+            background-color: var(--nav-active-bg);
+            color: var(--accent);
+            border-left: 3px solid var(--accent);
+        }
+        .sidebar .version { color: var(--text-version); font-size: 11px; padding-top: 8px; }
+        .sidebar .theme-box { padding: 8px 0 4px 0; }
+        .sidebar .theme-box label { display: block; color: var(--text-muted); font-size: 11px; margin-bottom: 4px; }
+
+        .main { flex: 1; padding: 20px 30px; overflow-x: auto; }
+
+        .title { color: var(--text-strong); font-size: 22px; font-weight: bold; margin-bottom: 2px; }
+        .subtitle { color: var(--text-muted); font-size: 13px; margin-bottom: 20px; }
+
+        .cards { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+        .card {
+            background-color: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            min-width: 200px;
+            flex: 1;
+        }
+        .card .card-title { color: var(--text-muted); font-size: 12px; }
+        .card .card-value { color: var(--text-strong); font-size: 26px; font-weight: bold; margin-top: 6px; }
+
+        .panel {
+            background-color: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .panel-accent { background-color: var(--panel-accent-bg); border: 1px solid var(--panel-accent-border); }
+
+        .row { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; align-items: flex-end; }
+        .field { flex: 1; min-width: 180px; }
+        .field label { display: block; font-weight: bold; margin-bottom: 6px; }
+        .field .hint { color: var(--accent); font-size: 12px; margin-bottom: 6px; margin-top: 2px; }
+
+        label, input, select, button {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            font-size: 13px;
+        }
+        input[type="text"], input[type="number"], input[type="date"], select {
+            width: 100%;
+            background-color: var(--input-bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 13px;
+            transition: background-color .3s, color .3s, border-color .3s;
+        }
+        input[type="text"]:focus, input[type="number"]:focus, input[type="date"]:focus, select:focus {
+            outline: none;
+            border: 1px solid var(--accent);
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7); }
+
+        .btn {
+            background-color: var(--btn-bg);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn:hover { background-color: var(--btn-hover); }
+        .btn-primary { background-color: #0d47a1; }
+        .btn-primary:hover { background-color: #1565c0; }
+        .btn-success { background-color: #1b5e20; }
+        .btn-success:hover { background-color: #2e7d32; }
+        .btn-danger { background-color: #b71c1c; }
+        .btn-danger:hover { background-color: #c62828; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 6px; }
+
+        .table-wrap { overflow-x: auto; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            transition: background-color .3s, border-color .3s;
+        }
+        thead th {
+            background-color: var(--header-bg);
+            color: var(--accent);
+            padding: 8px;
+            font-weight: bold;
+            font-size: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        tbody td {
+            padding: 8px;
+            font-size: 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        tbody tr:nth-child(even) { background-color: var(--alt-row); }
+        tbody tr:hover { background-color: var(--row-hover); }
+        td.num { text-align: right; }
+        td.center { text-align: center; }
+        .pos { color: #81c784; }
+        .neg { color: #ffb74d; }
+        .danger { color: #ef5350; }
+        .muted { color: var(--text-muted); }
+
+        .flash { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-weight: bold; }
+        .flash.success { background-color: #1b5e20; color: #c8e6c9; }
+        .flash.error { background-color: #b71c1c; color: #ffcdd2; }
+        .flash.warning { background-color: #4a3a00; color: #ffe082; }
+
+        .summary-strip {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .summary-strip .adv { color: #81c784; }
+        .summary-strip .ded { color: #ffb74d; }
+        .summary-strip .bal { color: #ef5350; }
+
+        .pagination { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+        .pagination-pages { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+        @media (max-width: 800px) {
+            body { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: static; flex-direction: row; flex-wrap: wrap; align-items: center; }
+            .sidebar .sep, .sidebar .version, .sidebar .app-sub, .sidebar .theme-box { display: none; }
+            .nav-btn { width: auto; padding: 8px 12px; }
+        }
+    </style>
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('ams-theme');
+                if (['dark', 'light', 'blue', 'green', 'purple'].indexOf(t) !== -1) {
+                    document.documentElement.setAttribute('data-theme', t);
+                }
+            } catch (e) {}
+        })();
+    </script>
+</head>
+<body>
+    <nav class="sidebar">
+        <div class="app-title">  ADVANCE MGMT</div>
+        <div class="app-sub">  CPS Sargodha</div>
+        <hr class="sep">
+        <a class="nav-btn {{ 'active' if active == 'dashboard' }}" href="{{ url_for('dashboard') }}">  Dashboard</a>
+        <a class="nav-btn {{ 'active' if active == 'advance' }}" href="{{ url_for('advance_entry') }}">  Advance Entry</a>
+        <a class="nav-btn {{ 'active' if active == 'ledger' }}" href="{{ url_for('ledger') }}">  Employee Ledger</a>
+        <a class="nav-btn {{ 'active' if active == 'reconcile' }}" href="{{ url_for('reconcile') }}">  Reconcile Data</a>
+        <a class="nav-btn {{ 'active' if active == 'sync' }}" href="{{ url_for('sync_page') }}">  Sync Data</a>
+        <a class="nav-btn {{ 'active' if active == 'employees' }}" href="{{ url_for('manage_employees') }}">  Manage Employees</a>
+        <div style="flex-grow:1;"></div>
+        <div class="theme-box">
+            <label for="themeSelect">Theme</label>
+            <select id="themeSelect">
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+                <option value="blue">Blue</option>
+                <option value="green">Green</option>
+                <option value="purple">Purple</option>
+            </select>
+        </div>
+        <hr class="sep">
+        <div class="version">  v1.0.0 (Web)</div>
+    </nav>
+
+    <main class="main">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <div class="modal-overlay" id="editModal" style="display:none;">
+        <div class="modal">
+            <div class="modal-title">Edit Transaction</div>
+            <form method="post" id="editForm">
+                <div class="field" style="margin-bottom:12px;">
+                    <label>Employee Name</label>
+                    <select id="editEmpName" name="emp_name" required>
+                        <option value="">-- Select Employee --</option>
+                    </select>
+                </div>
+                <div class="row" style="align-items:flex-start;">
+                    <div class="field">
+                        <label>Date</label>
+                        <input type="date" id="editTransDate" name="trans_date" required>
+                    </div>
+                    <div class="field">
+                        <label>Transaction Type</label>
+                        <select id="editTransType" name="trans_type">
+                            <option value="Advance Payment">Advance Payment</option>
+                            <option value="Deduction / Salary Adj.">Deduction / Salary Adj.</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Amount</label>
+                        <input type="number" id="editAmount" name="amount" min="0" step="1" required>
+                    </div>
+                </div>
+                <div class="field" style="margin-bottom:16px;">
+                    <label>Description</label>
+                    <input type="text" id="editDescription" name="description" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <button type="button" class="btn" onclick="closeEditModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% block scripts %}{% endblock %}
+    <script>
+        function openEditModal(transId) {
+            document.getElementById('editForm').value = '';
+            fetch('/api/transaction/' + transId)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.exists) { alert('Transaction not found'); return; }
+                    const t = data.transaction;
+                    const form = document.getElementById('editForm');
+                    form.action = '/transaction/' + transId + '/edit';
+                    document.getElementById('editEmpName').value = t.emp_name;
+                    document.getElementById('editTransDate').value = t.trans_date;
+                    document.getElementById('editTransType').value = t.trans_type;
+                    document.getElementById('editAmount').value = t.amount;
+                    document.getElementById('editDescription').value = t.description;
+                    document.getElementById('editModal').style.display = 'flex';
+                });
+        }
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+        function deleteTransaction(transId, empName) {
+            if (!confirm('Delete transaction #' + transId + ' for ' + empName + '?\nThis cannot be undone.')) return;
+            const form = document.createElement('form');
+            form.method = 'post';
+            form.action = '/transaction/' + transId + '/delete';
+            document.body.appendChild(form);
+            form.submit();
+        }
+        (function loadEmployees() {
+            fetch('/api/employees')
+                .then(r => r.json())
+                .then(names => {
+                    const sel = document.getElementById('editEmpName');
+                    names.forEach(n => {
+                        const opt = document.createElement('option');
+                        opt.value = n;
+                        opt.textContent = n;
+                        sel.appendChild(opt);
+                    });
+                });
+        })();
+        (function themeSwitcher() {
+            const sel = document.getElementById('themeSelect');
+            if (!sel) return;
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            sel.value = ['dark', 'light', 'blue', 'green', 'purple'].indexOf(current) !== -1 ? current : 'dark';
+            sel.addEventListener('change', function () {
+                document.documentElement.setAttribute('data-theme', this.value);
+                try { localStorage.setItem('ams-theme', this.value); } catch (e) {}
+            });
+        })();
+    </script>
+    <style>
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+            display: flex; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal {
+            background-color: var(--modal-bg); border: 1px solid var(--border); border-radius: 12px;
+            padding: 24px; width: 560px; max-width: 92%; max-height: 90vh; overflow-y: auto;
+        }
+        .modal-title { color: var(--text-strong); font-size: 18px; font-weight: bold; margin-bottom: 16px; }
+        .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
+    </style>
+</body>
+</html>
